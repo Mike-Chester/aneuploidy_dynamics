@@ -149,7 +149,7 @@ class KaryotypeSimulation:
             stable_reproducing_individuals_count = count_stable_indivs(reproducing_individuals)
             tetrasomic_counts = count_tetrasomic_indivs(reproducing_individuals)
 
-            gamete_listing = [meiosis(individual,self.aneuploid_pairing_bias) for individual in reproducing_individuals]
+            gamete_listing = [meiosis(individual, self.aneuploid_pairing_bias) for individual in reproducing_individuals]
 
             for individual in gamete_listing:
                 self.all_seeds.append(dip_list(individual))
@@ -229,6 +229,37 @@ def code_chromosome_stoichiometry(population_karyotypes):
     return group_stoichiometry_status
 
 
+def meiosis_with_numerical_aneuploidy(parent_karyotype, aneuploid_pairing_bias):
+    """A more accurate simulation of meiosis that allows for numerical aneuploidy.
+    This runs slower, and is designed for the megaspore generation.
+    :arg parent_karyotype holds parent's chromosomes,
+        e.g. ['A5A5a5a5', 'B5B5b5b5', 'C5C5c5c5', 'D5D5d5d5', 'E5E5e5e5', 'F5F5f5f5']
+    :type parent_karyotype: list[chromosome groups]
+    :arg aneuploid_pairing_bias holds number which in the case of 3:1 ratios controlling strength of skew
+        (i.e. increased 0:2 transmission from trisomic chromosome )
+    :type aneuploid_pairing_bias: int """
+    # [[['A5a5', 'B5B5', 'c5c5', 'D5d5', 'E5e5', 'f5f5'], ...]]
+
+    # 6 lists per chromosome group
+    #    36: list of single haploid strings 'B8b8'
+    result = []
+    h = .9  # odds of homologous pairing
+    g = .1  # odds of homeologous pairing
+    a = .1  # odds of numerical aneuploidy
+    # Model one chromosome pairing off with another, those two become unavailable for future
+    for chr_group in parent_karyotype:  # do the same thing for each group of chromosomes
+        # 'A5A5a5a5'
+        chromosomes = separate_chrom_str(chr_group)
+        for chr in chromosomes:
+            options = list(chromosomes).remove(chr) + [None]
+            weights = [h, g, g, a] #(* (len(chromosomes) - 1)) + [a]
+            random.choice(options, weights=weights,  # zero chance of self
+                          replace=False)
+    ############IMPORTANT: This is where we left off#####################
+        # result.append()
+
+
+
 def meiosis(parent_karyotype, aneuploid_pairing_bias):
     """ Generate all possible random chromosome pairs in gametes, then weights the outcomes by pairing
     fidelity. Takes the chromosome composition of an individual and produces the set of possible gametes
@@ -277,7 +308,7 @@ def generate_all_haploid_chr_combinations(chr_group):
     :type chr_group: str
     """
     group_homeologue_list = []
-    chr_group = reorder_bal_het(chr_group)
+    chr_group = reorder_balanced_2plus2(chr_group)
     chrm_combs = [chr_group[0:2], chr_group[2:4], chr_group[4:6], chr_group[6:8]]
     for pair in itertools.combinations(chrm_combs, 2):
         group_homeologue_list.append(pair[0] + pair[1])
@@ -340,16 +371,21 @@ def fuse_gametes(megagameto, microgameto):
     return progeny_list
 
 
-def reorder_bal_het(chr_group):
+def reorder_balanced_2plus2(chr_group):
     """ Reorder gamete combination for homeologues in a 2:2 ratio, for predictable disomic segregation
     e.g., B8b8B8b8 would be returned as B8B8b8b8, i.e. with homologues paired together
     :arg chr_group holds a single chromosome group, of the form 'B8b8B8b8'
     :type chr_group: str
     """
-    reordered_chrs = [chr_group[0:2], chr_group[2:4], chr_group[4:6], chr_group[6:8]]
-    while reordered_chrs[0][0:1] != reordered_chrs[1][0:1]:
-        reordered_chrs = [reordered_chrs[2], reordered_chrs[0], reordered_chrs[1], reordered_chrs[3]]
-    return ''.join(reordered_chrs)
+    reordered_chrs = separate_chrom_str(chr_group)
+    return ''.join(sorted(reordered_chrs, key=lambda x: x[0]))
+
+
+def separate_chrom_str(chr_group):
+    separated = []
+    for i in range(0, len(chr_group), 2):
+        separated.append(chr_group[i:i+2])
+    return separated
 
 
 def microgametophyte_fitness(gametophyte_lis):
@@ -565,38 +601,43 @@ def str2bool(cmd_value):
     else:
         raise argparse.ArgumentTypeError('Use y or n to specify boolean argument.')
 
-parser = argparse.ArgumentParser()
-# INPUT OPTIONS
-parser.add_argument('--max_pop_size', required=True, type=int, help="Maximum population size")
-parser.add_argument('--generations', required=True, type=int, help="Total number of generations")
-parser.add_argument('--seed_viability_cutoff', required=True, type=int, default=20,
-                    help="Maximum imbalance cost for a seed to still be viable")
-parser.add_argument('--sibling_survival_cutoff', required=True, type=int, default=60,
-                    help="Maximum number of seeds that possibly establish out of a maximum 240 seeds per "
-                         "parent plant")
-parser.add_argument('--starting_karyotype', required=True, type=str, default=80,
-                    help="Set founder karyotype with percentage stringency e.g. 20 or "
-                         "karyotypes of the form (PD_xx_yy_a_b) e.g. PD_80_100_99_1 "
-                         "where xx is low stringency percentage, yy is high stringency percentage, a is "
-                         "number of low stringency of indivs and b is number of high stringency indivs")
-parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.50,
-                    help="Fraction of plants in population that will survive to flowering")
-parser.add_argument('--aneuploid_pairing_bias', default=4, type=int,
-                    help='Controls skew applied to meiosis involving 1:3 complements.'
-                         'Note, a value of 4 was found to yield biologically realistic results '
-                         'for Tragopogon miscellus')
-# OUTPUT OPTIONS
-parser.add_argument('--print_eupl_aneu_counts', type=str2bool, nargs='?', const=True, default=True,
-                    help="Print output counts (Y/n)")
-parser.add_argument("--germinated_karyotypes", type=str2bool, nargs='?', const=True, default=False,
-                    help="Print list of all karyotypes that germinated in final generation (y/N)")
-parser.add_argument('--adult_karyotypes', type=str2bool, nargs='?', const=True, default=False,
-                    help="Print list of all karyotypes that reached flowering in final generation (y/N)")
-parser.add_argument('--out_name', required=True, type=str, help="Full path and name of output file")
-args = parser.parse_args()
-
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    # INPUT OPTIONS
+    parser.add_argument('--max_pop_size', required=True, type=int, help="Maximum population size")
+    parser.add_argument('--generations', required=True, type=int, help="Total number of generations")
+    parser.add_argument('--seed_viability_cutoff', required=True, type=int, default=20,
+                        help="Maximum imbalance cost for a seed to still be viable")
+    parser.add_argument('--sibling_survival_cutoff', required=True, type=int, default=60,
+                        help="Maximum number of seeds that possibly establish out of a maximum 240 seeds per "
+                             "parent plant")
+    parser.add_argument('--starting_karyotype', required=True, type=str, default=80,
+                        help="Set founder karyotype with percentage stringency e.g. 20 or "
+                             "karyotypes of the form (PD_xx_yy_a_b) e.g. PD_80_100_99_1 "
+                             "where xx is low stringency percentage, yy is high stringency percentage, a is "
+                             "number of low stringency of indivs and b is number of high stringency indivs")
+    parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.50,
+                        help="Fraction of plants in population that will survive to flowering")
+    parser.add_argument('--aneuploid_pairing_bias', default=4, type=int,
+                        help='Controls skew applied to meiosis involving 1:3 complements.'
+                             'Note, a value of 4 was found to yield biologically realistic results '
+                             'for Tragopogon miscellus')
+    # OUTPUT OPTIONS
+    parser.add_argument('--print_eupl_aneu_counts', type=str2bool, nargs='?', const=True, default=True,
+                        help="Print output counts (Y/n)")
+    parser.add_argument("--germinated_karyotypes", type=str2bool, nargs='?', const=True, default=False,
+                        help="Print list of all karyotypes that germinated in final generation (y/N)")
+    parser.add_argument('--adult_karyotypes', type=str2bool, nargs='?', const=True, default=False,
+                        help="Print list of all karyotypes that reached flowering in final generation (y/N)")
+    parser.add_argument('--out_name', required=True, type=str, help="Full path and name of output file")
+    parser.add_argument('--test', required=False, action='store_true',
+                        help="Use a fixed random number generator seed to always produce the same test output.")
+    args = parser.parse_args()
+
+    if args.test:
+        random.seed(154897491)  # for deterministic testing, don't use for research.
     simulation = KaryotypeSimulation(args.germinated_karyotypes, args.adult_karyotypes,
                                      args.aneuploid_pairing_bias)
     simulation.run_simulation()
