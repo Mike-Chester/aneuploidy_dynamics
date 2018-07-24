@@ -7,7 +7,7 @@ import datetime
 import statistics
 from operator import itemgetter
 
-
+random.seed(154897491)  # for deterministic testing.  Remove for production.
 chr_range = 'AaBbCcDdEeFf'
 
 """# GLOSSARY and INFO:
