@@ -251,10 +251,12 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
         if total_count == 4:
             if balanced:
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
+                numerical_aneuploid_list = tetrasomic_split_listing(chr_group)
                 possible_gametic_combinations.append(
                     (group_homeologue_list[1:5] * disomic_count) +    # homologous pairing products
                     (group_homeologue_list[0:1] * tetrasomic_count) + # homeologous pairing products
-                    (group_homeologue_list[5:6] * tetrasomic_count))  # homeologous pairing products
+                    (group_homeologue_list[5:6] * tetrasomic_count) + # homeologous pairing products
+                    (numerical_aneuploid_list[:]))
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 # In 1:3 situations, need to boost numbers of 0:2 gametes due to non-disjunction of monosomes.
@@ -267,6 +269,11 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 # increase the number of unbalanced gametes.  See paper for rationale on using an integer value of 4.
                 lis_of_nulli_disome_gametes *= resulting_aneuploid_count
                 possible_gametic_combinations.append(group_homeologue_list + lis_of_nulli_disome_gametes)
+      #  if total_count == 3:
+
+      #  if total_count == 5:
+
+
     return possible_gametic_combinations
 
 
@@ -283,6 +290,63 @@ def generate_all_haploid_chr_combinations(chr_group):
     for pair in itertools.combinations(chrm_combs, 2):
         group_homeologue_list.append(pair[0] + pair[1])
     return group_homeologue_list
+
+
+def trisomic_split_listing(chr_group):
+    monosome_lis = []
+    gamete_lis = []
+    chr_group_ls = [chr_group[i:i+2] for i in range(0, len(chr_group), 2)]
+    for i in range(len(chr_group_ls)):
+        popped_chrm = chr_group_ls.pop(-1)
+        monosome_lis.append(popped_chrm)
+        monosome_lis.append(''.join(chr_group_ls))
+        chr_group_ls.insert(0,popped_chrm)
+        gamete_lis.extend(monosome_lis*2)
+        monosome_lis = []
+    random.shuffle(gamete_lis)
+    return (gamete_lis)
+
+
+def tetrasomic_split_listing(chr_group):
+    monosome_lis = []
+    gamete_lis = []
+    chr_group_ls = [chr_group[i:i+2] for i in range(0, len(chr_group), 2)]
+    for i in range(len(chr_group_ls)):
+        popped_chrm = chr_group_ls.pop(-1)
+        monosome_lis.append(popped_chrm)
+        monosome_lis.append(''.join(chr_group_ls))
+        chr_group_ls.insert(0,popped_chrm)
+        gamete_lis.extend(monosome_lis*2)
+        monosome_lis = []
+    random.shuffle(gamete_lis)
+    return (gamete_lis)
+
+
+def pentasomic_split_listing(chr_group):
+    gamete_lis = []
+    three_two_ls = []
+    one_four_ls = []
+    chr_group_ls = [chr_group[i:i+2] for i in range(0, len(chr_group), 2)]
+    for i in range(len(chr_group_ls)):
+        popped_chrm = chr_group_ls.pop(-1)
+        one_four_ls.append(popped_chrm)
+        one_four_ls.append(''.join(chr_group_ls))
+        chr_group_ls.insert(0,popped_chrm)
+        gamete_lis.extend(one_four_ls*2)
+        one_four_ls = []
+    for i in range(len(chr_group_ls)):
+        popped_chrm = chr_group_ls.pop(-1)
+        popped_chrm = popped_chrm+(chr_group_ls.pop(-1))
+        popped_chrm = popped_chrm+(chr_group_ls.pop(-1))
+        three_two_ls.append(popped_chrm)
+        three_two_ls.append(''.join(chr_group_ls))
+        chr_group_ls.insert(0,popped_chrm[0:2])
+        chr_group_ls.insert(0,popped_chrm[2:4])
+        chr_group_ls.insert(0,popped_chrm[4:6])
+        gamete_lis.extend(three_two_ls*2)
+        three_two_ls = []
+    random.shuffle(gamete_lis)
+    return (gamete_lis)
 
 
 def homeolog_ratio_and_weighting_and_total(chr_group):
@@ -363,7 +427,6 @@ def separate_chrom_str(chr_group):
 
 def microgametophyte_fitness(gametophyte_lis):
     """ Generate fitness cost per microgametophyte - based on sum of chromosomal imbalances per group.
-
     Profiling Note: This is 40% of the run time
     :rtype: list
     """
