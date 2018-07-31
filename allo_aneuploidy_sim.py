@@ -229,37 +229,6 @@ def code_chromosome_stoichiometry(population_karyotypes):
     return group_stoichiometry_status
 
 
-def meiosis_with_numerical_aneuploidy(parent_karyotype, aneuploid_pairing_bias):
-    """A more accurate simulation of meiosis that allows for numerical aneuploidy.
-    This runs slower, and is designed for the megaspore generation.
-    :arg parent_karyotype holds parent's chromosomes,
-        e.g. ['A5A5a5a5', 'B5B5b5b5', 'C5C5c5c5', 'D5D5d5d5', 'E5E5e5e5', 'F5F5f5f5']
-    :type parent_karyotype: list[chromosome groups]
-    :arg aneuploid_pairing_bias holds number which in the case of 3:1 ratios controlling strength of skew
-        (i.e. increased 0:2 transmission from trisomic chromosome )
-    :type aneuploid_pairing_bias: int """
-    # [[['A5a5', 'B5B5', 'c5c5', 'D5d5', 'E5e5', 'f5f5'], ...]]
-
-    # 6 lists per chromosome group
-    #    36: list of single haploid strings 'B8b8'
-    result = []
-    h = .9  # odds of homologous pairing
-    g = .1  # odds of homeologous pairing
-    a = .1  # odds of numerical aneuploidy
-    # Model one chromosome pairing off with another, those two become unavailable for future
-    for chr_group in parent_karyotype:  # do the same thing for each group of chromosomes
-        # 'A5A5a5a5'
-        chromosomes = separate_chrom_str(chr_group)
-        for chr in chromosomes:
-            options = list(chromosomes).remove(chr) + [None]
-            weights = [h, g, g, a] #(* (len(chromosomes) - 1)) + [a]
-            random.choice(options, weights=weights,  # zero chance of self
-                          replace=False)
-    ############IMPORTANT: This is where we left off#####################
-        # result.append()
-
-
-
 def meiosis(parent_karyotype, aneuploid_pairing_bias):
     """ Generate all possible random chromosome pairs in gametes, then weights the outcomes by pairing
     fidelity. Takes the chromosome composition of an individual and produces the set of possible gametes
@@ -276,27 +245,28 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
     """
     possible_gametic_combinations = []
     for chr_group in parent_karyotype:
-        disomic_count, tetrasomic_count = homeolog_ratio_and_weighting(chr_group)
+        disomic_count, tetrasomic_count, total_count = homeolog_ratio_and_weighting_and_total(chr_group)
         letter = chr_group[0]
         balanced = chr_group.count(letter.upper()) == 2 and chr_group.count(letter.lower()) == 2 # check 2:2 ratio
-        if balanced:
-            group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
-            possible_gametic_combinations.append(
-                (group_homeologue_list[1:5] * disomic_count) +    # homologous pairing products
-                (group_homeologue_list[0:1] * tetrasomic_count) + # homeologous pairing products
-                (group_homeologue_list[5:6] * tetrasomic_count))  # homeologous pairing products
-        else:  # unbalanced 1:3 or 0:4 composition
-            group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
-            # In 1:3 situations, need to boost numbers of 0:2 gametes due to non-disjunction of monosomes.
-            # Non-disjunction will be highest where pairing stringency is highest
-            lis_of_nulli_disome_gametes = []
-            for pairing in group_homeologue_list:
-                if pairing[0:1] == pairing[2:3]:
-                    lis_of_nulli_disome_gametes.append(pairing)
-            resulting_aneuploid_count = disomic_count * aneuploid_pairing_bias  # homeologous pairing bias
-            # increase the number of unbalanced gametes.  See paper for rationale on using an integer value of 4.
-            lis_of_nulli_disome_gametes *= resulting_aneuploid_count
-            possible_gametic_combinations.append(group_homeologue_list + lis_of_nulli_disome_gametes)
+        if total_count == 4:
+            if balanced:
+                group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
+                possible_gametic_combinations.append(
+                    (group_homeologue_list[1:5] * disomic_count) +    # homologous pairing products
+                    (group_homeologue_list[0:1] * tetrasomic_count) + # homeologous pairing products
+                    (group_homeologue_list[5:6] * tetrasomic_count))  # homeologous pairing products
+            else:  # unbalanced 1:3 or 0:4 composition
+                group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
+                # In 1:3 situations, need to boost numbers of 0:2 gametes due to non-disjunction of monosomes.
+                # Non-disjunction will be highest where pairing stringency is highest
+                lis_of_nulli_disome_gametes = []
+                for pairing in group_homeologue_list:
+                    if pairing[0:1] == pairing[2:3]:
+                        lis_of_nulli_disome_gametes.append(pairing)
+                resulting_aneuploid_count = disomic_count * aneuploid_pairing_bias  # homeologous pairing bias
+                # increase the number of unbalanced gametes.  See paper for rationale on using an integer value of 4.
+                lis_of_nulli_disome_gametes *= resulting_aneuploid_count
+                possible_gametic_combinations.append(group_homeologue_list + lis_of_nulli_disome_gametes)
     return possible_gametic_combinations
 
 
@@ -315,7 +285,7 @@ def generate_all_haploid_chr_combinations(chr_group):
     return group_homeologue_list
 
 
-def homeolog_ratio_and_weighting(chr_group):
+def homeolog_ratio_and_weighting_and_total(chr_group):
     """ Extract pairing fidelity values encoded on each chromosome to obtain a mean for the individual.
     :param chr_group holds a single chromosome group, e.g. 'A8A8a8a8'
     :type chr_group: str
@@ -327,7 +297,8 @@ def homeolog_ratio_and_weighting(chr_group):
     if proportion_disomic == 0:
         disomic_count = 10
         tetrasomic_count = 0
-    return disomic_count, tetrasomic_count
+    total_count = (int(len(chr_group)/2))
+    return disomic_count, tetrasomic_count, total_count
 
 
 def dip_list(possible_haploid_chr_complements):
@@ -338,10 +309,12 @@ def dip_list(possible_haploid_chr_complements):
     :type possible_haploid_chr_complements: list of lists
      """
     megagameto = []
+    # TODO: will need to traverse sublists (of sets of four) into one list for megagametophytes
     for i in range(240): # generate 240 megaspores
         gametes = ''.join([random.choice(l) for l in possible_haploid_chr_complements])
         megagameto.append(gametes)
     microgameto = []
+    # TODO: will need to flatten sublists into one list for microgametophytes
     for i in range(6000): # generate 6000 microspores
         gametes = ''.join([random.choice(l) for l in possible_haploid_chr_complements])
         microgameto.append(gametes)
