@@ -255,8 +255,8 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 possible_gametic_combinations.append(
                     (group_homeologue_list[1:5] * disomic_count) +    # homologous pairing products
                     (group_homeologue_list[0:1] * tetrasomic_count) + # homeologous pairing products
-                    (group_homeologue_list[5:6] * tetrasomic_count) + # homeologous pairing products
-                    (numerical_aneuploid_list[:]))
+                    (group_homeologue_list[5:6] * tetrasomic_count)) + # homeologous pairing products
+                    (numerical_aneuploid_list[:])) # numerical aneuploid list
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 # In 1:3 situations, need to boost numbers of 0:2 gametes due to non-disjunction of monosomes.
@@ -375,17 +375,17 @@ def dip_list(possible_haploid_chr_complements):
     megagameto = []
     # TODO: will need to traverse sublists (of sets of four) into one list for megagametophytes
     for i in range(240): # generate 240 megaspores
-        gametes = ''.join([random.choice(l) for l in possible_haploid_chr_complements])
+        gametes = '_'.join([random.choice(l) for l in possible_haploid_chr_complements])
         megagameto.append(gametes)
     microgameto = []
     # TODO: will need to flatten sublists into one list for microgametophytes
     for i in range(6000): # generate 6000 microspores
-        gametes = ''.join([random.choice(l) for l in possible_haploid_chr_complements])
+        gametes = '_'.join([random.choice(l) for l in possible_haploid_chr_complements])
         microgameto.append(gametes)
     random.shuffle(microgameto)
     microgameto = microgametophyte_fitness(microgameto) # rank by stochiometric imbalance
     random.shuffle(megagameto)
-    progeny_list = fuse_gametes(megagameto, microgameto) # generate progeny karyotypes
+    progeny_list = fuse_gametes_new(megagameto, microgameto) # generate progeny karyotypes
     random.shuffle(progeny_list)
     return progeny_list
 
@@ -401,8 +401,11 @@ def fuse_gametes(megagameto, microgameto):
     progeny_list = []
     for n in range(240):
         list_of_doubles = []
-        for i in range(0, 24, 4):
-            paired_gametes = microgameto[n][i:i + 4] + megagameto[n][i:i + 4]
+        # TODO: this needs to be modified (consider traversing sublists)
+        ls_micro = microgameto[n].split('_')
+        ls_mega = megagameto[n].split('_')
+        for i in range(0,6):
+            paired_gametes =ls_micro[i]+ls_mega[i]
             list_of_doubles.append(paired_gametes)
         progeny_list.append(list_of_doubles)
     return progeny_list
