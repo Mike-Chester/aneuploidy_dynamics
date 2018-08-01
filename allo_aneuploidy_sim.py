@@ -255,7 +255,7 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 possible_gametic_combinations.append(
                     (group_homeologue_list[1:5] * disomic_count) +    # homologous pairing products
                     (group_homeologue_list[0:1] * tetrasomic_count) + # homeologous pairing products
-                    (group_homeologue_list[5:6] * tetrasomic_count)) + # homeologous pairing products
+                    (group_homeologue_list[5:6] * tetrasomic_count) + # homeologous pairing products
                     (numerical_aneuploid_list[:])) # numerical aneuploid list
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
@@ -385,7 +385,7 @@ def dip_list(possible_haploid_chr_complements):
     random.shuffle(microgameto)
     microgameto = microgametophyte_fitness(microgameto) # rank by stochiometric imbalance
     random.shuffle(megagameto)
-    progeny_list = fuse_gametes_new(megagameto, microgameto) # generate progeny karyotypes
+    progeny_list = fuse_gametes(megagameto, microgameto) # generate progeny karyotypes
     random.shuffle(progeny_list)
     return progeny_list
 
