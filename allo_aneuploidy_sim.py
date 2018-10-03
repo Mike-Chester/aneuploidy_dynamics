@@ -8,7 +8,6 @@ import statistics
 from operator import itemgetter
 from itertools import chain
 
-random.seed(154897491)  # for deterministic testing.  Remove for production.
 chr_range = 'AaBbCcDdEeFf'
 
 """# GLOSSARY and INFO:
