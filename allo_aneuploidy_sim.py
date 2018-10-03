@@ -6,6 +6,7 @@ import argparse
 import datetime
 import statistics
 from operator import itemgetter
+from itertools import chain
 
 random.seed(154897491)  # for deterministic testing.  Remove for production.
 chr_range = 'AaBbCcDdEeFf'
@@ -201,12 +202,13 @@ def random_sib_survival(viable_progeny_listing):
 
 
 def aneuploidy_code_for_chr_count(chr_count):
-    """ Output a letter code based on chromosome copy number (0,1,2,3,4)"""
+    """ Output a letter code based on chromosome copy number (0,1,2,3,4,5)"""
     return {0: 'N',
             1: 'U',
             2: 'B',
             3: 'U',
-            4: 'N'}[chr_count]
+            4: 'N',
+            5: 'P'}[chr_count]
 
 
 def code_chromosome_stoichiometry(population_karyotypes):
@@ -253,10 +255,10 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 numerical_aneuploid_list = tetrasomic_split_listing(chr_group)
                 possible_gametic_combinations.append(
-                    (group_homeologue_list[1:5] * disomic_count) +    # homologous pairing products
-                    (group_homeologue_list[0:1] * tetrasomic_count) + # homeologous pairing products
-                    (group_homeologue_list[5:6] * tetrasomic_count) + # homeologous pairing products
-                    (numerical_aneuploid_list[:])) # numerical aneuploid list
+                    (group_homeologue_list[1:5]* disomic_count*2) + #(1) homologous pairing products #TODO: replace int:2 with arg
+                    (group_homeologue_list[0:1]* tetrasomic_count*2) + #(2) homeologous pairing products
+                    (group_homeologue_list[5:6]* tetrasomic_count*2) + #(3) homeologous pairing products
+                    (list(chain.from_iterable(numerical_aneuploid_list[:]))))   #(4) numerical aneuploid list
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 # In 1:3 situations, need to boost numbers of 0:2 gametes due to non-disjunction of monosomes.
@@ -269,11 +271,10 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 # increase the number of unbalanced gametes.  See paper for rationale on using an integer value of 4.
                 lis_of_nulli_disome_gametes *= resulting_aneuploid_count
                 possible_gametic_combinations.append(group_homeologue_list + lis_of_nulli_disome_gametes)
-      #  if total_count == 3:
-
-      #  if total_count == 5:
-
-
+        if total_count == 3:
+            possible_gametic_combinations.append(list(chain.from_iterable(trisomic_split_listing(chr_group)[:]))) # TODO: check if bias is needed
+        if total_count == 5:
+            possible_gametic_combinations.append(list(chain.from_iterable(pentasomic_split_listing(chr_group)[:]))) # TODO: check if bias is needed
     return possible_gametic_combinations
 
 
@@ -301,7 +302,7 @@ def trisomic_split_listing(chr_group):
         monosome_lis.append(popped_chrm)
         monosome_lis.append(''.join(chr_group_ls))
         chr_group_ls.insert(0,popped_chrm)
-        gamete_lis.extend(monosome_lis*2)
+        gamete_lis.append(monosome_lis*2)
         monosome_lis = []
     random.shuffle(gamete_lis)
     return (gamete_lis)
@@ -316,10 +317,10 @@ def tetrasomic_split_listing(chr_group):
         monosome_lis.append(popped_chrm)
         monosome_lis.append(''.join(chr_group_ls))
         chr_group_ls.insert(0,popped_chrm)
-        gamete_lis.extend(monosome_lis*2)
+        gamete_lis.append(monosome_lis*2)
         monosome_lis = []
     random.shuffle(gamete_lis)
-    return (gamete_lis)
+    return (gamete_lis[:])
 
 
 def pentasomic_split_listing(chr_group):
@@ -332,7 +333,7 @@ def pentasomic_split_listing(chr_group):
         one_four_ls.append(popped_chrm)
         one_four_ls.append(''.join(chr_group_ls))
         chr_group_ls.insert(0,popped_chrm)
-        gamete_lis.extend(one_four_ls*2)
+        gamete_lis.append(one_four_ls*2)
         one_four_ls = []
     for i in range(len(chr_group_ls)):
         popped_chrm = chr_group_ls.pop(-1)
@@ -343,7 +344,7 @@ def pentasomic_split_listing(chr_group):
         chr_group_ls.insert(0,popped_chrm[0:2])
         chr_group_ls.insert(0,popped_chrm[2:4])
         chr_group_ls.insert(0,popped_chrm[4:6])
-        gamete_lis.extend(three_two_ls*2)
+        gamete_lis.append(three_two_ls*2)
         three_two_ls = []
     random.shuffle(gamete_lis)
     return (gamete_lis)
@@ -354,8 +355,16 @@ def homeolog_ratio_and_weighting_and_total(chr_group):
     :param chr_group holds a single chromosome group, e.g. 'A8A8a8a8'
     :type chr_group: str
     """
-    mei_cost = int(chr_group[1]) + int(chr_group[3]) + int(chr_group[5]) + int(chr_group[7])
-    proportion_disomic = round(mei_cost / 4)
+    proportion_disomic=99
+    if len(chr_group) == 8:
+        mei_cost = int(chr_group[1]) + int(chr_group[3]) + int(chr_group[5]) + int(chr_group[7])
+        proportion_disomic = round(mei_cost / 4)
+    if len(chr_group) == 6:
+        mei_cost = int(chr_group[1]) + int(chr_group[3]) + int(chr_group[5])
+        proportion_disomic = round(mei_cost / 3)
+    if len(chr_group) == 10:
+        mei_cost = int(chr_group[1]) + int(chr_group[3]) + int(chr_group[5]) + int(chr_group[7]) + int(chr_group[9])
+        proportion_disomic = round(mei_cost / 5)
     tetrasomic_count = 10 - proportion_disomic
     disomic_count = proportion_disomic
     if proportion_disomic == 0:
@@ -371,21 +380,19 @@ def dip_list(possible_haploid_chr_complements):
      (2) random fusion of gametes to produce embryos (endosperm is ignored).
     :arg possible_haploid_chr_complements e.g. [['A8a8','A8A8'....]['B8b8','b8b8'] etc...]
     :type possible_haploid_chr_complements: list of lists
-     """
+    """
     megagameto = []
-    # TODO: will need to traverse sublists (of sets of four) into one list for megagametophytes
-    for i in range(240): # generate 240 megaspores
+    for i in range(240):  # generate 240 megaspores
         gametes = '_'.join([random.choice(l) for l in possible_haploid_chr_complements])
         megagameto.append(gametes)
     microgameto = []
-    # TODO: will need to flatten sublists into one list for microgametophytes
-    for i in range(6000): # generate 6000 microspores
+    for i in range(6000):  # generate 6000 microspores
         gametes = '_'.join([random.choice(l) for l in possible_haploid_chr_complements])
         microgameto.append(gametes)
-    random.shuffle(microgameto)
-    microgameto = microgametophyte_fitness(microgameto) # rank by stochiometric imbalance
+    random.shuffle(microgameto)  # TODO: is this needed?
+    microgameto = microgametophyte_fitness(microgameto)
     random.shuffle(megagameto)
-    progeny_list = fuse_gametes(megagameto, microgameto) # generate progeny karyotypes
+    progeny_list = fuse_gametes(megagameto, microgameto)
     random.shuffle(progeny_list)
     return progeny_list
 
@@ -399,11 +406,14 @@ def fuse_gametes(megagameto, microgameto):
     :type microgameto: list
     """
     progeny_list = []
-    for n in range(240):
+    ###print("meg:",len(megagameto))
+    ###print("mic",len(microgameto))
+    for n in range(len(megagameto)):  ### TODO: changed from 240, check ok
         list_of_doubles = []
-        # TODO: this needs to be modified (consider traversing sublists)
         ls_micro = microgameto[n].split('_')
         ls_mega = megagameto[n].split('_')
+        ###print(ls_micro)
+        ###print(ls_mega)
         for i in range(0,6):
             paired_gametes =ls_micro[i]+ls_mega[i]
             list_of_doubles.append(paired_gametes)
