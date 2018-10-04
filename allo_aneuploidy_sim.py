@@ -394,7 +394,7 @@ def dip_list(possible_haploid_chr_complements):
     for i in range(6000):  # generate 6000 microspores
         gametes = '_'.join([random.choice(l) for l in possible_haploid_chr_complements])
         microgameto.append(gametes)
-    random.shuffle(microgameto)  # TODO: is this needed?
+    random.shuffle(microgameto)
     microgameto = microgametophyte_fitness(microgameto)
     random.shuffle(megagameto)
     progeny_list = fuse_gametes(megagameto, microgameto)
@@ -557,10 +557,11 @@ def do_reports(args, generation_history):
     """
     if args.print_eupl_aneu_counts:
 
-        def append_B_U_N_counts_to_lis(karyotype, B_lis, U_lis, N_lis):
+        def append_B_U_N_counts_to_lis(karyotype, B_lis, U_lis, N_lis, n_lis):
             B_lis.append(karyotype.count('B'))
             U_lis.append(karyotype.count('U'))
             N_lis.append(karyotype.count('N'))
+            n_lis.append(karyotype.count('n'))
 
 
         def my_mean(integer_list):
@@ -579,60 +580,106 @@ def do_reports(args, generation_history):
         print("writing ouput to:", report_filename, "at", datetime.datetime.now().strftime("%H:%M %d/%m/%y"))
         with open(report_filename, 'w') as out_file:
             for n, current_generation in enumerate(generation_history):  # GenerationState
-                # B, BU and BUN counts
+                # B, BU, BUN, BUNn counts
                 all_euploid_count = 0
                 all_B_U_aneuploid_count = 0
                 all_B_U_N_aneuploid_count = 0
+                all_B_U_N_n_aneuploid_count = 0
                 flowering_euploid_count = 0
                 flowering_B_U_aneuploid_count = 0
                 flowering_B_U_N_aneuploid_count = 0
+                flowering_B_U_N_n_aneuploid_count = 0
                 # breakdown for BU individuals from all pool:
                 balanced_all_B_and_U = []
                 unbalanced_all_B_and_U = []
                 nulli_all_B_and_U = []
+                num_all_B_and_U = []
                 # breakdown for BUN individuals from all pool:
                 balanced_all_B_and_U_and_N = []
                 unbalanced_all_B_and_U_and_N = []
                 nulli_all_B_and_U_and_N = []
+                num_all_B_and_U_and_N = []
+                # breakdown for BUNn individuals from all pool:
+                balanced_all_B_and_U_and_N_and_n = []
+                unbalanced_all_B_and_U_and_N_and_n = []
+                nulli_all_B_and_U_and_N_and_n = []
+                num_all_B_and_U_and_N_and_n = []
                 # breakdown for BU individuals from flowering pool:
                 balanced_flowering_B_and_U = []
                 unbalanced_flowering_B_and_U = []
                 nulli_flowering_B_and_U = []
+                num_flowering_B_and_U = []
                 # breakdown for BUN individuals from flowering pool:
                 balanced_flowering_B_and_U_and_N = []
                 unbalanced_flowering_B_and_U_and_N = []
                 nulli_flowering_B_and_U_and_N = []
+                num_flowering_B_and_U_and_N = []
+                # breakdown for BUNn individuals from flowering pool:
+                balanced_flowering_B_and_U_and_N_and_n = []
+                unbalanced_flowering_B_and_U_and_N_and_n = []
+                nulli_flowering_B_and_U_and_N_and_n = []
+                num_flowering_B_and_U_and_N_and_n = []
 
                 for entry in current_generation.codes_for_viable_seeds:
-                    if all(i in entry for i in ['B', 'U', 'N']) or all(i in entry for i in ['B', 'N']) or all(
-                                    i in entry for i in ['N']):
-                        all_B_U_N_aneuploid_count = all_B_U_N_aneuploid_count + 1
-                        append_B_U_N_counts_to_lis(entry, balanced_all_B_and_U_and_N,
-                                                   unbalanced_all_B_and_U_and_N, nulli_all_B_and_U_and_N)
+                    if all(i in entry for i in ['B', 'U', 'N', 'n']) or \
+                            all(i in entry for i in ['B', 'N', 'n']) or \
+                            all(i in entry for i in ['N', 'n']) or \
+                            all(i in entry for i in ['n']):
+                        all_B_U_N_n_aneuploid_count +=1
+                        append_B_U_N_counts_to_lis(entry, balanced_all_B_and_U_and_N_and_n,
+                                                   unbalanced_all_B_and_U_and_N_and_n,
+                                                   nulli_all_B_and_U_and_N_and_n,
+                                                   num_all_B_and_U_and_N_and_n)
                     else:
-                        if all(i in entry for i in ['B', 'U']) or all(i in entry for i in ['U']):
-                            all_B_U_aneuploid_count = all_B_U_aneuploid_count + 1
-                            append_B_U_N_counts_to_lis(entry, balanced_all_B_and_U, unbalanced_all_B_and_U,
-                                                       nulli_all_B_and_U)
+                        if all(i in entry for i in ['B', 'U', 'N']) or \
+                                all(i in entry for i in ['B', 'N']) or \
+                                all(i in entry for i in ['N']):
+                            all_B_U_N_aneuploid_count +=1
+                            append_B_U_N_counts_to_lis(entry, balanced_all_B_and_U_and_N,
+                                                       unbalanced_all_B_and_U_and_N,
+                                                       nulli_all_B_and_U_and_N,
+                                                       num_all_B_and_U_and_N)
                         else:
-                            if all(i in entry for i in ['B']):
-                                all_euploid_count = all_euploid_count + 1
+                            if all(i in entry for i in ['B', 'U']) or \
+                                    all(i in entry for i in ['U']):
+                                all_B_U_aneuploid_count +=1
+                                append_B_U_N_counts_to_lis(entry, balanced_all_B_and_U,
+                                                           unbalanced_all_B_and_U,
+                                                           nulli_all_B_and_U,
+                                                           num_all_B_and_U)
+                            else:
+                                if all(i in entry for i in ['B']):
+                                    all_euploid_count +=1
                 for entry in current_generation.codes_for_reproducing_individuals:
-                    if all(i in entry for i in ['B', 'U', 'N']) or \
-                            all(i in entry for i in ['B', 'N']) or \
-                            all(i in entry for i in ['N']):
-                        flowering_B_U_N_aneuploid_count = flowering_B_U_N_aneuploid_count + 1
-                        append_B_U_N_counts_to_lis(entry, balanced_flowering_B_and_U_and_N,
-                                                   unbalanced_flowering_B_and_U_and_N,
-                                                   nulli_flowering_B_and_U_and_N)
+                    if all(i in entry for i in ['B', 'U', 'N', 'n']) or \
+                            all(i in entry for i in ['B', 'N', 'n']) or \
+                            all(i in entry for i in ['N', 'n']) or \
+                            all(i in entry for i in ['n']):
+                        flowering_B_U_N_n_aneuploid_count +=1
+                        append_B_U_N_counts_to_lis(entry, balanced_flowering_B_and_U_and_N_and_n,
+                                                   unbalanced_flowering_B_and_U_and_N_and_n,
+                                                   nulli_flowering_B_and_U_and_N_and_n,
+                                                   num_flowering_B_and_U_and_N_and_n)
                     else:
-                        if all(i in entry for i in ['B', 'U']) or all(i in entry for i in ['U']):
-                            flowering_B_U_aneuploid_count = flowering_B_U_aneuploid_count + 1
-                            append_B_U_N_counts_to_lis(entry, balanced_flowering_B_and_U,
-                                                       unbalanced_flowering_B_and_U, nulli_flowering_B_and_U)
+                        if all(i in entry for i in ['B', 'U', 'N']) or \
+                                all(i in entry for i in ['B', 'N']) or \
+                                all(i in entry for i in ['N']):
+                            flowering_B_U_N_aneuploid_count +=1
+                            append_B_U_N_counts_to_lis(entry, balanced_flowering_B_and_U_and_N,
+                                                       unbalanced_flowering_B_and_U_and_N,
+                                                       nulli_flowering_B_and_U_and_N,
+                                                       num_flowering_B_and_U_and_N)
                         else:
-                            if all(i in entry for i in ['B']):
-                                flowering_euploid_count = flowering_euploid_count + 1
+                            if all(i in entry for i in ['B', 'U']) or \
+                                    all(i in entry for i in ['U']):
+                                flowering_B_U_aneuploid_count +=1
+                                append_B_U_N_counts_to_lis(entry, balanced_flowering_B_and_U,
+                                                           unbalanced_flowering_B_and_U,
+                                                           nulli_flowering_B_and_U,
+                                                           num_flowering_B_and_U)
+                            else:
+                                if all(i in entry for i in ['B']):
+                                    flowering_euploid_count +=1
 
 
                 order_derived = [n, args.generations, args.max_pop_size, args.seed_viability_cutoff,
@@ -646,9 +693,13 @@ def do_reports(args, generation_history):
                 order_mean_stats = (
                     balanced_all_B_and_U, unbalanced_all_B_and_U, nulli_all_B_and_U,
                     balanced_all_B_and_U_and_N, unbalanced_all_B_and_U_and_N, nulli_all_B_and_U_and_N,
+                    balanced_all_B_and_U_and_N_and_n, unbalanced_all_B_and_U_and_N_and_n, nulli_all_B_and_U_and_N_and_n,
+                    num_all_B_and_U_and_N_and_n,
                     balanced_flowering_B_and_U, unbalanced_flowering_B_and_U, nulli_flowering_B_and_U,
                     balanced_flowering_B_and_U_and_N, unbalanced_flowering_B_and_U_and_N,
-                    nulli_flowering_B_and_U_and_N)
+                    nulli_flowering_B_and_U_and_N,
+                    balanced_flowering_B_and_U_and_N_and_n, unbalanced_flowering_B_and_U_and_N_and_n,
+                    nulli_flowering_B_and_U_and_N_and_n, num_flowering_B_and_U_and_N_and_n)
                 out_file.write(','.join([str(my_mean(x)) for x in order_mean_stats]) + '\n')
 
 
