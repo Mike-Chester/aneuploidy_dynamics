@@ -160,7 +160,6 @@ class KaryotypeSimulation:
             self._report_on_generation(germinated_seeds, reproducing_individuals)
 
 
-
 def count_stable_indivs(list_of_karyotypes):
     """count meiotically stable karyotypes (with zeros encoded on all chromosomes)
     :arg list_of_karyotypes
@@ -201,13 +200,20 @@ def random_sib_survival(viable_progeny_listing):
 
 
 def aneuploidy_code_for_chr_count(chr_count):
-    """ Output a letter code based on chromosome copy number (0,1,2,3,4,5)"""
-    return {0: 'N',
-            1: 'U',
-            2: 'B',
-            3: 'U',
-            4: 'N',
-            5: 'P'}[chr_count]
+    """ Output a letter code based on chromosome copy number (0,1,2,3,4,5)
+    n=numerical aneuploid
+    N=nulli-tetrasomic
+    B=Balanced
+    U=mono-trisomic
+    X=double nullisomic
+    """
+    return {'00': 'X', '10': 'n',  '20': 'n', '30': 'n', '40': 'N', '50': 'n', '60': 'n',
+            '01': 'n', '11': 'n',  '21': 'n', '31': 'U', '41': 'n', '51': 'n', '61': 'n',
+            '02': 'n', '12': 'n',  '22': 'B', '32': 'n', '42': 'n', '52': 'n', '62': 'n',
+            '03': 'n', '13': 'U',  '23': 'n', '33': 'n', '43': 'n', '53': 'n', '63': 'n',
+            '04': 'N', '14': 'n',  '24': 'n', '34': 'n', '44': 'n', '54': 'n', '64': 'n',
+            '05': 'n', '15': 'n',  '25': 'n', '35': 'n', '45': 'n', '55': 'n', '65': 'n',
+            '06': 'n', '16': 'n',  '26': 'n', '36': 'n', '46': 'n', '56': 'n', '66': 'n'}[chr_count]
 
 
 def code_chromosome_stoichiometry(population_karyotypes):
@@ -219,12 +225,12 @@ def code_chromosome_stoichiometry(population_karyotypes):
     """
     group_stoichiometry_status = []
     for karyotype in population_karyotypes:
-        code_Aa = aneuploidy_code_for_chr_count(karyotype[0].count('A'))
-        code_Bb = aneuploidy_code_for_chr_count(karyotype[1].count('B'))
-        code_Cc = aneuploidy_code_for_chr_count(karyotype[2].count('C'))
-        code_Dd = aneuploidy_code_for_chr_count(karyotype[3].count('D'))
-        code_Ee = aneuploidy_code_for_chr_count(karyotype[4].count('E'))
-        code_Ff = aneuploidy_code_for_chr_count(karyotype[5].count('F'))
+        code_Aa = aneuploidy_code_for_chr_count(str(karyotype[0].count('A'))+str((karyotype[0].count('a'))))
+        code_Bb = aneuploidy_code_for_chr_count(str(karyotype[1].count('B'))+str((karyotype[1].count('b'))))
+        code_Cc = aneuploidy_code_for_chr_count(str(karyotype[2].count('C'))+str((karyotype[2].count('c'))))
+        code_Dd = aneuploidy_code_for_chr_count(str(karyotype[3].count('D'))+str((karyotype[3].count('d'))))
+        code_Ee = aneuploidy_code_for_chr_count(str(karyotype[4].count('E'))+str((karyotype[4].count('e'))))
+        code_Ff = aneuploidy_code_for_chr_count(str(karyotype[5].count('F'))+str((karyotype[5].count('f'))))
         group_stoichiometry_status.append(''.join((code_Aa, code_Bb, code_Cc, code_Dd, code_Ee, code_Ff)))
         # example: ['BBBBBU', 'BBUBBB', 'BBBBBB', 'BBUBBB']
     return group_stoichiometry_status
@@ -254,9 +260,9 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 numerical_aneuploid_list = tetrasomic_split_listing(chr_group)
                 possible_gametic_combinations.append(
-                    (group_homeologue_list[1:5]* disomic_count*2) + #(1) homologous pairing products #TODO: replace int:2 with arg
-                    (group_homeologue_list[0:1]* tetrasomic_count*2) + #(2) homeologous pairing products
-                    (group_homeologue_list[5:6]* tetrasomic_count*2) + #(3) homeologous pairing products
+                    (group_homeologue_list[1:5]* disomic_count*1) + #(1) homologous pairing products #TODO: replace int:2 with arg
+                    (group_homeologue_list[0:1]* tetrasomic_count*1) + #(2) homeologous pairing products
+                    (group_homeologue_list[5:6]* tetrasomic_count*1) + #(3) homeologous pairing products
                     (list(chain.from_iterable(numerical_aneuploid_list[:]))))   #(4) numerical aneuploid list
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
@@ -405,14 +411,10 @@ def fuse_gametes(megagameto, microgameto):
     :type microgameto: list
     """
     progeny_list = []
-    ###print("meg:",len(megagameto))
-    ###print("mic",len(microgameto))
-    for n in range(len(megagameto)):  ### TODO: changed from 240, check ok
+    for n in range(len(megagameto)):
         list_of_doubles = []
         ls_micro = microgameto[n].split('_')
         ls_mega = megagameto[n].split('_')
-        ###print(ls_micro)
-        ###print(ls_mega)
         for i in range(0,6):
             paired_gametes =ls_micro[i]+ls_mega[i]
             list_of_doubles.append(paired_gametes)
@@ -445,12 +447,18 @@ def microgametophyte_fitness(gametophyte_lis):
     costed_gametos = []
     new_list = []
     for gameto in gametophyte_lis:
-        diffAa = ((gameto.count('A') + 1) - (gameto.count('a') + 1)) ** 2  # 0 or 4
-        diffBb = ((gameto.count('B') + 1) - (gameto.count('b') + 1)) ** 2  # 0 or 4
-        diffCc = ((gameto.count('C') + 1) - (gameto.count('c') + 1)) ** 2  # 0 or 4
-        diffDd = ((gameto.count('D') + 1) - (gameto.count('d') + 1)) ** 2  # 0 or 4
-        diffEe = ((gameto.count('E') + 1) - (gameto.count('e') + 1)) ** 2  # 0 or 4
-        diffFf = ((gameto.count('F') + 1) - (gameto.count('f') + 1)) ** 2  # 0 or 4
+        diffAa = (((((gameto).count('A') + 1) - ((gameto).count('a') + 1)) ** 2) +
+                  ((abs((gameto.count('A') + gameto.count('a')) - 2))*16))  # 0, 4, 16
+        diffBb = (((((gameto).count('B') + 1) - ((gameto).count('b') + 1)) ** 2) +
+                  ((abs((gameto.count('B') + gameto.count('b')) - 2))*16))  # 0, 4, 16
+        diffCc = (((((gameto).count('C') + 1) - ((gameto).count('c') + 1)) ** 2) +
+                  ((abs((gameto.count('C') + gameto.count('c')) - 2))*16))  # 0, 4, 16
+        diffDd = (((((gameto).count('D') + 1) - ((gameto).count('d') + 1)) ** 2) +
+                  ((abs((gameto.count('D') + gameto.count('d')) - 2))*16))  # 0, 4, 16
+        diffEe = (((((gameto).count('E') + 1) - ((gameto).count('e') + 1)) ** 2) +
+                  ((abs((gameto.count('E') + gameto.count('e')) - 2))*16))  # 0, 4, 16
+        diffFf = (((((gameto).count('F') + 1) - ((gameto).count('f') + 1)) ** 2) +
+                  ((abs((gameto.count('F') + gameto.count('f')) - 2))*16))  # 0, 4, 16
         total_diffs = diffAa + diffBb + diffCc + diffDd + diffEe + diffFf
         costed_gametos.append((gameto, total_diffs))
     costed_gametos = sorted(costed_gametos, key=itemgetter(1)) # rank by stochiometric imbalance
@@ -467,12 +475,18 @@ def sporophyte_fitness(progeny_list):
     costed_progeny = []
     random.shuffle(progeny_list)
     for progeny in progeny_list:
-        diffAa = (((progeny[0]).count('A') + 1) - ((progeny[0]).count('a') + 1)) ** 2  # 0, 4, 16
-        diffBb = (((progeny[1]).count('B') + 1) - ((progeny[1]).count('b') + 1)) ** 2  # 0, 4, 16
-        diffCc = (((progeny[2]).count('C') + 1) - ((progeny[2]).count('c') + 1)) ** 2  # 0, 4, 16
-        diffDd = (((progeny[3]).count('D') + 1) - ((progeny[3]).count('d') + 1)) ** 2  # 0, 4, 16
-        diffEe = (((progeny[4]).count('E') + 1) - ((progeny[4]).count('e') + 1)) ** 2  # 0, 4, 16
-        diffFf = (((progeny[5]).count('F') + 1) - ((progeny[5]).count('f') + 1)) ** 2  # 0, 4, 16
+        diffAa = (((((progeny[0]).count('A') + 1) - ((progeny[0]).count('a') + 1)) ** 2) +
+                  ((abs((progeny[0].count('A') + progeny[0].count('a')) - 4))*16))  # 0, 4, 16
+        diffBb = (((((progeny[1]).count('B') + 1) - ((progeny[1]).count('b') + 1)) ** 2) +
+                  ((abs((progeny[1].count('B') + progeny[1].count('b')) - 4))*16))  # 0, 4, 16
+        diffCc = (((((progeny[2]).count('C') + 1) - ((progeny[2]).count('c') + 1)) ** 2) +
+                  ((abs((progeny[2].count('C') + progeny[2].count('c')) - 4))*16))  # 0, 4, 16
+        diffDd = (((((progeny[3]).count('D') + 1) - ((progeny[3]).count('d') + 1)) ** 2) +
+                  ((abs((progeny[3].count('D') + progeny[3].count('d')) - 4))*16))  # 0, 4, 16
+        diffEe = (((((progeny[4]).count('E') + 1) - ((progeny[4]).count('e') + 1)) ** 2) +
+                  ((abs((progeny[4].count('E') + progeny[4].count('e')) - 4))*16))  # 0, 4, 16
+        diffFf = (((((progeny[5]).count('F') + 1) - ((progeny[5]).count('f') + 1)) ** 2) +
+                  ((abs((progeny[5].count('F') + progeny[5].count('f')) - 4))*16))  # 0, 4, 16
         total_diffs = diffAa + diffBb + diffCc + diffDd + diffEe + diffFf
         costed_progeny.append((progeny, total_diffs))
     return costed_progeny
