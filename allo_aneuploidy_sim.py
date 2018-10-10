@@ -260,9 +260,9 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 numerical_aneuploid_list = tetrasomic_split_listing(chr_group)
                 possible_gametic_combinations.append(
-                    (group_homeologue_list[1:5]* disomic_count*1) + #(1) homologous pairing products #TODO: replace int:2 with arg
-                    (group_homeologue_list[0:1]* tetrasomic_count*1) + #(2) homeologous pairing products
-                    (group_homeologue_list[5:6]* tetrasomic_count*1) + #(3) homeologous pairing products
+                    (group_homeologue_list[1:5]* disomic_count*args.non_numerical_multiplier) + #(1) homologous pairing products
+                    (group_homeologue_list[0:1]* tetrasomic_count*args.non_numerical_multiplier) + #(2) homeologous pairing products
+                    (group_homeologue_list[5:6]* tetrasomic_count*args.non_numerical_multiplier) + #(3) homeologous pairing products
                     (list(chain.from_iterable(numerical_aneuploid_list[:]))))   #(4) numerical aneuploid list
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
@@ -693,11 +693,10 @@ def do_reports(args, generation_history):
                 order_mean_stats = (
                     balanced_all_B_and_U, unbalanced_all_B_and_U, nulli_all_B_and_U,
                     balanced_all_B_and_U_and_N, unbalanced_all_B_and_U_and_N, nulli_all_B_and_U_and_N,
-                    balanced_all_B_and_U_and_N_and_n, unbalanced_all_B_and_U_and_N_and_n, nulli_all_B_and_U_and_N_and_n,
-                    num_all_B_and_U_and_N_and_n,
+                    balanced_all_B_and_U_and_N_and_n, unbalanced_all_B_and_U_and_N_and_n,
+                    nulli_all_B_and_U_and_N_and_n, num_all_B_and_U_and_N_and_n,
                     balanced_flowering_B_and_U, unbalanced_flowering_B_and_U, nulli_flowering_B_and_U,
-                    balanced_flowering_B_and_U_and_N, unbalanced_flowering_B_and_U_and_N,
-                    nulli_flowering_B_and_U_and_N,
+                    balanced_flowering_B_and_U_and_N, unbalanced_flowering_B_and_U_and_N, nulli_flowering_B_and_U_and_N,
                     balanced_flowering_B_and_U_and_N_and_n, unbalanced_flowering_B_and_U_and_N_and_n,
                     nulli_flowering_B_and_U_and_N_and_n, num_flowering_B_and_U_and_N_and_n)
                 out_file.write(','.join([str(my_mean(x)) for x in order_mean_stats]) + '\n')
@@ -724,7 +723,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed_viability_cutoff', required=True, type=int, default=20,
                         help="Maximum imbalance cost for a seed to still be viable")
     parser.add_argument('--sibling_survival_cutoff', required=True, type=int, default=60,
-                        help="Maximum number of seeds that possibly establish out of a maximum 240 seeds per "
+                        help="Maximum number of seeds that can possibly establish out of a maximum 240 seeds per "
                              "parent plant")
     parser.add_argument('--starting_karyotype', required=True, type=str, default=80,
                         help="Set founder karyotype with percentage stringency e.g. 20 or "
@@ -734,17 +733,21 @@ if __name__ == '__main__':
     parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.50,
                         help="Fraction of plants in population that will survive to flowering")
     parser.add_argument('--aneuploid_pairing_bias', default=4, type=int,
-                        help='Controls skew applied to meiosis involving 1:3 complements.'
-                             'Note, a value of 4 was found to yield biologically realistic results '
-                             'for Tragopogon miscellus')
+                        help="Controls skew applied to meiosis involving 1:3 complements, to account for the increased "
+                             "transmission of the trisomic chromsome relative to the monosome. Note that a value of "
+                             "4 was found to yield biologically realistic results for Tragopogon miscellus.")
+    parser.add_argument('--non_numerical_multiplier', default=1, type=int,
+                        help="Integer-based weighting to alter the number of non-numerical gametophyte sets "
+                             "relative to the number of numerical gaemtophyte sets.")
+
     # OUTPUT OPTIONS
     parser.add_argument('--print_eupl_aneu_counts', type=str2bool, nargs='?', const=True, default=True,
                         help="Print output counts (Y/n)")
     parser.add_argument("--germinated_karyotypes", type=str2bool, nargs='?', const=True, default=False,
-                        help="Print list of all karyotypes that germinated in final generation (y/N)")
+                        help="Print list of all karyotypes that germinated in final generation (y/N).")
     parser.add_argument('--adult_karyotypes', type=str2bool, nargs='?', const=True, default=False,
-                        help="Print list of all karyotypes that reached flowering in final generation (y/N)")
-    parser.add_argument('--out_name', required=True, type=str, help="Full path and name of output file")
+                        help="Print list of all karyotypes that reached flowering in final generation (y/N).")
+    parser.add_argument('--out_name', required=True, type=str, help="Full path and name of output file.")
     parser.add_argument('--test', required=False, action='store_true',
                         help="Use a fixed random number generator seed to always produce the same test output.")
     args = parser.parse_args()
