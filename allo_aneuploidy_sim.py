@@ -736,7 +736,7 @@ if __name__ == '__main__':
                         help="Controls skew applied to meiosis involving 1:3 complements, to account for the increased "
                              "transmission of the trisomic chromsome relative to the monosome. Note that a value of "
                              "4 was found to yield biologically realistic results for Tragopogon miscellus.")
-    parser.add_argument('--non_numerical_multiplier', default=1, type=int,
+    parser.add_argument('--non_numerical_multiplier', default=2, type=int,
                         help="Integer-based weighting to alter the number of non-numerical gametophyte sets "
                              "relative to the number of numerical gaemtophyte sets.")
 
