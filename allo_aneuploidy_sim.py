@@ -681,7 +681,7 @@ def do_reports(args, generation_history):
                                 if all(i in entry for i in ['B']):
                                     flowering_euploid_count +=1
 
-
+#TODO: need to add non_numerical_multiplier to output list
                 order_derived = [n, args.generations, args.max_pop_size, args.seed_viability_cutoff,
                                  args.ranked_survival_to_flowering_cutoff, args.sibling_survival_cutoff,
                                  args.starting_karyotype,
@@ -736,7 +736,7 @@ if __name__ == '__main__':
                         help="Controls skew applied to meiosis involving 1:3 complements, to account for the increased "
                              "transmission of the trisomic chromsome relative to the monosome. Note that a value of "
                              "4 was found to yield biologically realistic results for Tragopogon miscellus.")
-    parser.add_argument('--non_numerical_multiplier', default=3, type=int,
+    parser.add_argument('--non_numerical_multiplier', default=4, type=int,
                         help="Integer-based weighting to alter the number of non-numerical gametophyte sets "
                              "relative to the number of numerical gaemtophyte sets.")
 
