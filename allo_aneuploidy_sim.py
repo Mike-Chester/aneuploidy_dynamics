@@ -726,19 +726,19 @@ if __name__ == '__main__':
                         help="Maximum number of seeds that can possibly establish out of a maximum 240 seeds per "
                              "parent plant")
     parser.add_argument('--starting_karyotype', required=True, type=str, default=80,
-                        help="Set founder karyotype with percentage stringency e.g. 20 or "
+                        help="Set single founder karyotype with percentage stringency e.g. 20, or two founder "
                              "karyotypes of the form (PD_xx_yy_a_b) e.g. PD_80_100_99_1 "
                              "where xx is low stringency percentage, yy is high stringency percentage, a is "
-                             "number of low stringency of indivs and b is number of high stringency indivs")
+                             "number of low stringency of individuals and b is number of high stringency individuals")
     parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.50,
                         help="Fraction of plants in population that will survive to flowering")
     parser.add_argument('--aneuploid_pairing_bias', default=4, type=int,
                         help="Controls skew applied to meiosis involving 1:3 complements, to account for the increased "
-                             "transmission of the trisomic chromsome relative to the monosome. Note that a value of "
+                             "transmission of the trisomic chromosome relative to the monosome. Note that a value of "
                              "4 was found to yield biologically realistic results for Tragopogon miscellus.")
     parser.add_argument('--non_numerical_multiplier', default=3, type=int,
                         help="Integer-based weighting to alter the number of non-numerical gametophyte sets "
-                             "relative to the number of numerical gaemtophyte sets.")
+                             "relative to the number of numerical gametophyte sets.")
 
     # OUTPUT OPTIONS
     parser.add_argument('--print_eupl_aneu_counts', type=str2bool, nargs='?', const=True, default=True,
