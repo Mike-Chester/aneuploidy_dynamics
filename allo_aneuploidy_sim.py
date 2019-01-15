@@ -117,13 +117,13 @@ class KaryotypeSimulation:
             exit()
         print("Founder karyotype(s):\n", self.all_seeds)
 
-    def _report_on_generation(self, germinated_seeds, reproducing_individuals):
+    def _report_on_generation(self, germ_seedlings, reproducing_individuals):
         if self.report_on_germinated_karyotypes:
             print('\nIndividuals which germinated')
-            for i in germinated_seeds:
+            for i in germ_seedlings:
                 print(i)
             print('\nGerminated individuals (karyotype codes)')
-            print(code_chromosome_stoichiometry(germinated_seeds))
+            print(code_chromosome_stoichiometry(germ_seedlings))
         if self.report_on_adult_karyotypes:
             print('\nSurviving Adults')
             for i in reproducing_individuals:
@@ -137,10 +137,10 @@ class KaryotypeSimulation:
             viable_seeds_listing = apply_selection_to_seeds(self.all_seeds)
             self.all_seeds = []
 
-            germinated_seeds = random_sib_survival(viable_seeds_listing)
-            germinated_seeds_snapshot = code_chromosome_stoichiometry(germinated_seeds)
+            germinated_seedlings = random_sib_survival(viable_seeds_listing)
+            germinated_seeds_snapshot = code_chromosome_stoichiometry(germinated_seedlings)
 
-            established_plants = ranked_survival_to_flowering(germinated_seeds)
+            established_plants = ranked_survival_to_flowering(germinated_seedlings)
             random.shuffle(established_plants)
             self.pop_size = determine_current_population_carrying_capacity(self.pop_size)
             reproducing_individuals = established_plants[0:self.pop_size] # random survival to flowering
@@ -157,7 +157,7 @@ class KaryotypeSimulation:
                                                  stable_reproducing_individuals_count, tetrasomic_counts)
             self.generation_history.append(current_generation)
             print(generation_i, end=' ', flush=True)  # Status indicator for user
-            self._report_on_generation(germinated_seeds, reproducing_individuals)
+            self._report_on_generation(germinated_seedlings, reproducing_individuals)
 
 
 def count_stable_indivs(list_of_karyotypes):
