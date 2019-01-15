@@ -60,7 +60,7 @@ class GenerationState:
     def __init__(self, viable_seeds_codes, reproducing_individuals_codes, stable_scores, tetrasomic_dict):
         """Summary stats that are collected at each generation
             :arg viable_seeds_codes holds karyotype codes from individuals at viable seed stage,
-                B=balanced, U=3:1, N=4:0
+                B=balanced, U=3:1, N=4:0, n=3:2 or 1:2
             :type viable_seeds_codes: list[summarised karyotypes]
             :arg reproducing_individuals_codes holds karyotype codes from reproducing individuals stage
             :type reproducing_individuals_codes: list[summarised karyotypes]
@@ -85,6 +85,7 @@ class KaryotypeSimulation:
         self.report_on_germinated_karyotypes = report_on_germinated_karyotypes
         self.report_on_adult_karyotypes = report_on_adult_karyotypes
         self.initialise_population()
+
 
     def initialise_population(self):
         """Add individuals with defined karyotypes to population"""
@@ -117,18 +118,19 @@ class KaryotypeSimulation:
             exit()
         print("Founder karyotype(s):\n", self.all_seeds)
 
+
     def _report_on_generation(self, germ_seedlings, reproducing_individuals):
         if self.report_on_germinated_karyotypes:
-            print('\nIndividuals which germinated')
+            print('\nGerminated seedlings (karyotypes)')
             for i in germ_seedlings:
                 print(i)
-            print('\nGerminated individuals (karyotype codes)')
+            print('\nGerminated seedlings (karyotype codes)')
             print(code_chromosome_stoichiometry(germ_seedlings))
         if self.report_on_adult_karyotypes:
-            print('\nSurviving Adults')
+            print('\nReproducing individuals (karyotypes')
             for i in reproducing_individuals:
                 print(i)
-            print('\nSurviving Adults (karyotype codes)')
+            print('\nReproducing individuals (karyotype codes)')
             print(code_chromosome_stoichiometry(reproducing_individuals))
 
 
