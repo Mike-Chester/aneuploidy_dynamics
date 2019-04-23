@@ -716,8 +716,8 @@ def str2bool(cmd_value):
         raise argparse.ArgumentTypeError('Use y or n to specify boolean argument.')
 
 
-if __name__ == '__main__':
-
+def parse_args():
+    global args
     parser = argparse.ArgumentParser()
     # INPUT OPTIONS
     parser.add_argument('--max_pop_size', required=True, type=int, help="Maximum population size")
@@ -741,7 +741,6 @@ if __name__ == '__main__':
     parser.add_argument('--non_numerical_multiplier', default=3, type=int,
                         help="Integer-based weighting to alter the number of non-numerical gametophyte sets "
                              "relative to the number of numerical gametophyte sets.")
-
     # OUTPUT OPTIONS
     parser.add_argument('--print_eupl_aneu_counts', type=str2bool, nargs='?', const=True, default=True,
                         help="Print output counts (Y/n)")
@@ -756,6 +755,10 @@ if __name__ == '__main__':
 
     if args.test:
         random.seed(154897491)  # for deterministic testing, don't use for research.
+
+
+if __name__ == '__main__':
+    parse_args()
     simulation = KaryotypeSimulation(args.germinated_karyotypes, args.adult_karyotypes,
                                      args.aneuploid_pairing_bias)
     simulation.run_simulation()
