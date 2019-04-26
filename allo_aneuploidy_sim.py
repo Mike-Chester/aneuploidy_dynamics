@@ -11,17 +11,17 @@ from itertools import chain
 chr_range = 'AaBbCcDdEeFf'
 
 """# GLOSSARY and INFO:
-Aneuploid pairing bias parameter: applied to decrease the transmission of the monosome from parents with 3:1 complements.
-Default set to 4, see paper for details.
+--aneuploid_pairing_bias parameter decreases the transmission of the monosome from parents with 3:1 complements. 
+Default value is set to 4, see paper for details.
 
-Pairing fidelity value:  Stringency of homologue pairing that is encoded as a single digit across all chromosomes, 
-e.g., 8=80%, 9=90% and 0=100%.
+--starting_karyotype parameter sets pairing fidelity value i.e. the stringency of homologue pairing.
+Value encoded as a single digit across each chromosome, e.g., 8=80%, 9=90% and 0=100%.
 
-Chromosome group: Chromosomes that are homologous or homeologous, e.g. have the same letter in upper or lower case
+'Chromosome group': Chromosomes that are homologous or homeologous, e.g. have the same letter in upper or lower case
 (e.g., 'C4C4c4c4'). Note that the chromosome group was constrained to always having 4 chromosomes in 2:2, 1:3, or 0:4 
 homeologue ratios.
 
-output_text_file_column_names = [("Generation","End_generation","Max_pop_size","SEED_VIABILITY","SURVIVAL_TO_FLOWERING"
+Column names for output files = [("Generation","End_generation","Max_pop_size","SEED_VIABILITY","SURVIVAL_TO_FLOWERING"
 ,"MAX_SEED_SET","CORRECT_PAIRING_PROBABILITY","NON_NUMERICAL_MULTIPLIER","Total_stable_individuals",
 "Total_germinated_euploids","Total_germinated_3_1_aneupoids","Total_germinated_4_0_aneupoids", 
 "Total_germinated_numerical_aneuploids","Total_flowering_euploids","Total_flowering_3_1_aneupoids",
