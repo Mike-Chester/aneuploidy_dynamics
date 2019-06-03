@@ -11,25 +11,29 @@ from itertools import chain
 chr_range = 'AaBbCcDdEeFf'
 
 """# GLOSSARY and INFO:
-Aneuploid pairing bias parameter: applied to decrease the transmission of the monosome from parents with 3:1 complements.
-Default set to 4, see paper for details.
+--aneuploid_pairing_bias parameter decreases the transmission of the monosome from parents with 3:1 complements. 
+Default value is set to 4, see paper for details.
 
-Pairing fidelity value:  Stringency of homologue pairing that is encoded as a single digit across all chromosomes, 
-e.g., 8=80%, 9=90% and 0=100%.
+--starting_karyotype parameter sets pairing fidelity value i.e. the stringency of homologue pairing.
+Value encoded as a single digit across each chromosome, e.g., 8=80%, 9=90% and 0=100%.
 
-Chromosome group: Chromosomes that are homologous or homeologous, e.g. have the same letter in upper or lower case
+'Chromosome group': Chromosomes that are homologous or homeologous, e.g. have the same letter in upper or lower case
 (e.g., 'C4C4c4c4'). Note that the chromosome group was constrained to always having 4 chromosomes in 2:2, 1:3, or 0:4 
 homeologue ratios.
 
-output_text_file_column_names = ["Generation","End_generation","Max_pop_size","SEED_VIABILITY","SURVIVAL_TO_FLOWERING",\
-"MAX_SEED_SET", "CORRECT_PAIRING_PROBABILITY","Total_stable_individuals","Total_germinated_euploids",\
-"Total_germinated_3_1_aneupoids","Total_germinated_4_0_aneupoids","Total_flowering_euploids",\
-"Total_flowering_3_1_aneupoids","Total_flowering_4_0_aneupoids","A_tet_count","B_tet_count","C_tet_count",\
-"D_tet_count","E_tet_count","F_tet_count","G_tet_count","H_tet_count","I_tet_count","J_tet_count","K_tet_count",\
-"L_tet_count","balanced_all_B_and_U","unbalanced_all_B_and_U","nulli_all_B_and_U","balanced_all_B_and_U_and_N",\
-"unbalanced_all_B_and_U_and_N","nulli_all_B_and_U_and_N","balanced_flowering_B_and_U","unbalanced_flowering_B_and_U",\
-"nulli_flowering_B_and_U","balanced_flowering_B_and_U_and_N","unbalanced_flowering_B_and_U_and_N",\
-"nulli_flowering_B_and_U_and_N"]
+Column names for output files = [("Generation","End_generation","Max_pop_size","SEED_VIABILITY","SURVIVAL_TO_FLOWERING"
+,"MAX_SEED_SET","CORRECT_PAIRING_PROBABILITY","NON_NUMERICAL_MULTIPLIER","Total_stable_individuals",
+"Total_germinated_euploids","Total_germinated_3_1_aneupoids","Total_germinated_4_0_aneupoids", 
+"Total_germinated_numerical_aneuploids","Total_flowering_euploids","Total_flowering_3_1_aneupoids",
+"Total_flowering_4_0_aneupoids","Total_flowering_numerical_aneuploids","A_tet_count","a_tet_count","B_tet_count",
+"b_tet_count","C_tet_count","c_tet_count","D_tet_count","d_tet_count","E_tet_count","e_tet_count","F_tet_count",
+"f_tet_count","balanced_all_B_and_U","unbalanced_all_B_and_U","nulli_all_B_and_U","balanced_all_B_and_U_and_N",
+"unbalanced_all_B_and_U_and_N","nulli_all_B_and_U_and_N","balanced_all_B_and_U_and_N_and_n",
+"unbalanced_all_B_and_U_and_N_and_n","nulli_all_B_and_U_and_N_and_n","num_all_B_and_U_and_N_and_n",
+"balanced_flowering_B_and_U","unbalanced_flowering_B_and_U","nulli_flowering_B_and_U",
+"balanced_flowering_B_and_U_and_N","unbalanced_flowering_B_and_U_and_N","nulli_flowering_B_and_U_and_N",
+"balanced_flowering_B_and_U_and_N_and_n","unbalanced_flowering_B_and_U_and_N_and_n",
+"nulli_flowering_B_and_U_and_N_and_n", "num_flowering_B_and_U_and_N_and_n"]
 
 """
 
@@ -127,7 +131,7 @@ class KaryotypeSimulation:
             print('\nGerminated seedlings (karyotype codes)')
             print(code_chromosome_stoichiometry(germ_seedlings))
         if self.report_on_adult_karyotypes:
-            print('\nReproducing individuals (karyotypes')
+            print('\nReproducing individuals (karyotypes)')
             for i in reproducing_individuals:
                 print(i)
             print('\nReproducing individuals (karyotype codes)')
@@ -265,7 +269,7 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                     (group_homeologue_list[1:5]* disomic_count*args.non_numerical_multiplier) + #(1) homologous pairing products
                     (group_homeologue_list[0:1]* tetrasomic_count*args.non_numerical_multiplier) + #(2) homeologous pairing products
                     (group_homeologue_list[5:6]* tetrasomic_count*args.non_numerical_multiplier) + #(3) homeologous pairing products
-                    (list(chain.from_iterable(numerical_aneuploid_list[:]))))   #(4) numerical aneuploid list
+                    (list(chain.from_iterable(numerical_aneuploid_list[:]))))   #(4) numerical aneuploid (imbalanced segregation products)
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 # In 1:3 situations, need to boost numbers of 0:2 gametes due to non-disjunction of monosomes.
@@ -279,9 +283,9 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 lis_of_nulli_disome_gametes *= resulting_aneuploid_count
                 possible_gametic_combinations.append(group_homeologue_list + lis_of_nulli_disome_gametes)
         if total_count == 3:
-            possible_gametic_combinations.append(list(chain.from_iterable(trisomic_split_listing(chr_group)[:]))) # TODO: check if bias is needed
+            possible_gametic_combinations.append(list(chain.from_iterable(trisomic_split_listing(chr_group)[:])))
         if total_count == 5:
-            possible_gametic_combinations.append(list(chain.from_iterable(pentasomic_split_listing(chr_group)[:]))) # TODO: check if bias is needed
+            possible_gametic_combinations.append(list(chain.from_iterable(pentasomic_split_listing(chr_group)[:])))
     return possible_gametic_combinations
 
 
@@ -732,13 +736,13 @@ def parse_args():
                              "karyotypes of the form (PD_xx_yy_a_b) e.g. PD_80_100_99_1 "
                              "where xx is low stringency percentage, yy is high stringency percentage, a is "
                              "number of low stringency of individuals and b is number of high stringency individuals")
-    parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.50,
+    parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.42,
                         help="Fraction of plants in population that will survive to flowering")
     parser.add_argument('--aneuploid_pairing_bias', default=4, type=int,
                         help="Controls skew applied to meiosis involving 1:3 complements, to account for the increased "
                              "transmission of the trisomic chromosome relative to the monosome. Note that a value of "
                              "4 was found to yield biologically realistic results for Tragopogon miscellus.")
-    parser.add_argument('--non_numerical_multiplier', default=3, type=int,
+    parser.add_argument('--non_numerical_multiplier', default=13, type=int,
                         help="Integer-based weighting to alter the number of non-numerical gametophyte sets "
                              "relative to the number of numerical gametophyte sets.")
     # OUTPUT OPTIONS
@@ -757,10 +761,10 @@ def parse_args():
         random.seed(154897491)  # for deterministic testing, don't use for research.
 
 
+
 if __name__ == '__main__':
     parse_args()
     simulation = KaryotypeSimulation(args.germinated_karyotypes, args.adult_karyotypes,
                                      args.aneuploid_pairing_bias)
     simulation.run_simulation()
     do_reports(args, simulation.generation_history)
-
