@@ -745,6 +745,7 @@ def parse_args():
     parser.add_argument('--non_numerical_multiplier', default=13, type=int,
                         help="Integer-based weighting to alter the number of non-numerical gametophyte sets "
                              "relative to the number of numerical gametophyte sets.")
+
     # OUTPUT OPTIONS
     parser.add_argument('--print_eupl_aneu_counts', type=str2bool, nargs='?', const=True, default=True,
                         help="Print output counts (Y/n)")
@@ -756,10 +757,8 @@ def parse_args():
     parser.add_argument('--test', required=False, action='store_true',
                         help="Use a fixed random number generator seed to always produce the same test output.")
     args = parser.parse_args()
-
     if args.test:
         random.seed(154897491)  # for deterministic testing, don't use for research.
-
 
 
 if __name__ == '__main__':
