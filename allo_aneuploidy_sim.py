@@ -720,8 +720,8 @@ def str2bool(cmd_value):
         raise argparse.ArgumentTypeError('Use y or n to specify boolean argument.')
 
 
-if __name__ == '__main__':
-
+def parse_args():
+    global args
     parser = argparse.ArgumentParser()
     # INPUT OPTIONS
     parser.add_argument('--max_pop_size', required=True, type=int, help="Maximum population size")
@@ -757,10 +757,12 @@ if __name__ == '__main__':
     parser.add_argument('--test', required=False, action='store_true',
                         help="Use a fixed random number generator seed to always produce the same test output.")
     args = parser.parse_args()
-
     if args.test:
         random.seed(154897491)  # for deterministic testing, don't use for research.
 
+
+if __name__ == '__main__':
+    parse_args()
     simulation = KaryotypeSimulation(args.germinated_karyotypes, args.adult_karyotypes,
                                      args.aneuploid_pairing_bias)
     simulation.run_simulation()
