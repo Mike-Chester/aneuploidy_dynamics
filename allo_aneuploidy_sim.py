@@ -736,7 +736,7 @@ if __name__ == '__main__':
                              "karyotypes of the form (PD_xx_yy_a_b) e.g. PD_80_100_99_1 "
                              "where xx is low stringency percentage, yy is high stringency percentage, a is "
                              "number of low stringency of individuals and b is number of high stringency individuals")
-    parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.419,
+    parser.add_argument('--ranked_survival_to_flowering_cutoff', required=True, type=float, default=0.42,
                         help="Fraction of plants in population that will survive to flowering")
     parser.add_argument('--aneuploid_pairing_bias', default=4, type=int,
                         help="Controls skew applied to meiosis involving 1:3 complements, to account for the increased "
