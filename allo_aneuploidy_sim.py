@@ -14,8 +14,8 @@ chr_range = 'AaBbCcDdEeFf'
 --aneuploid_pairing_bias parameter decreases the transmission of the monosome from parents with 3:1 complements. 
 Default value is set to 4, see paper for details.
 
---starting_karyotype parameter sets pairing fidelity value i.e. the stringency of homologue pairing.
-Value encoded as a single digit across each chromosome, e.g., 8=80%, 9=90% and 0=100%.
+Pairing fidelity value:  Stringency of homologue pairing that is encoded as a single digit across all chromosomes, 
+e.g., 8=80%, 9=90% and 0=100%.
 
 'Chromosome group': Chromosomes that are homologous or homeologous, e.g. have the same letter in upper or lower case
 (e.g., 'C4C4c4c4'). Note that the chromosome group was constrained to always having 4 chromosomes in 2:2, 1:3, or 0:4 
@@ -61,20 +61,20 @@ def karyotype_table_lookup(pairing_fidelity):
 
 
 class GenerationState:
-    def __init__(self, viable_seeds_codes, reproducing_individuals_codes, stable_scores, tetrasomic_dict):
+    def __init__(self, viable_seeds_codes, flowering_individuals_codes, stable_scores, tetrasomic_dict):
         """Summary stats that are collected at each generation
             :arg viable_seeds_codes holds karyotype codes from individuals at viable seed stage,
                 B=balanced, U=3:1, N=4:0, n=3:2 or 1:2
             :type viable_seeds_codes: list[summarised karyotypes]
-            :arg reproducing_individuals_codes holds karyotype codes from reproducing individuals stage
-            :type reproducing_individuals_codes: list[summarised karyotypes]
+            :arg flowering_individuals_codes holds karyotype codes from flowering individuals stage
+            :type flowering_individuals_codes: list[summarised karyotypes]
             :arg stable_scores holds number of fully stable individuals, i.e. '0' on all chromosomes in karyotype
             :type stable_scores: int
             :arg tetrasomic_dict holds dictionary with counts of tetrasomic chromosomes
             :type tetrasomic_dict: dict
             """
         self.codes_for_viable_seeds = viable_seeds_codes
-        self.codes_for_reproducing_individuals = reproducing_individuals_codes
+        self.codes_for_flowering_individuals = flowering_individuals_codes
         self.count_of_stable_mature_individuals = stable_scores
         self.tetrasomic_dict = tetrasomic_dict
 
@@ -123,7 +123,7 @@ class KaryotypeSimulation:
         print("Founder karyotype(s):\n", self.all_seeds)
 
 
-    def _report_on_generation(self, germ_seedlings, reproducing_individuals):
+    def _report_on_generation(self, germ_seedlings, flowering_individuals):
         if self.report_on_germinated_karyotypes:
             print('\nGerminated seedlings (karyotypes)')
             for i in germ_seedlings:
@@ -131,11 +131,11 @@ class KaryotypeSimulation:
             print('\nGerminated seedlings (karyotype codes)')
             print(code_chromosome_stoichiometry(germ_seedlings))
         if self.report_on_adult_karyotypes:
-            print('\nReproducing individuals (karyotypes)')
-            for i in reproducing_individuals:
+            print('\nFlowering individuals (karyotypes)')
+            for i in flowering_individuals:
                 print(i)
-            print('\nReproducing individuals (karyotype codes)')
-            print(code_chromosome_stoichiometry(reproducing_individuals))
+            print('\nFlowering individuals (karyotype codes)')
+            print(code_chromosome_stoichiometry(flowering_individuals))
 
 
     def run_simulation(self):
@@ -149,21 +149,21 @@ class KaryotypeSimulation:
             established_plants = ranked_survival_to_flowering(germinated_seedlings)
             random.shuffle(established_plants)
             self.pop_size = determine_current_population_carrying_capacity(self.pop_size)
-            reproducing_individuals = established_plants[0:self.pop_size] # random survival to flowering
+            flowering_individuals = established_plants[0:self.pop_size] # random survival to flowering
 
-            reproducing_individuals_snapshot = code_chromosome_stoichiometry(reproducing_individuals)
-            stable_reproducing_individuals_count = count_stable_indivs(reproducing_individuals)
-            tetrasomic_counts = count_tetrasomic_indivs(reproducing_individuals)
+            flowering_individuals_snapshot = code_chromosome_stoichiometry(flowering_individuals)
+            stable_flowering_individuals_count = count_stable_indivs(flowering_individuals)
+            tetrasomic_counts = count_tetrasomic_indivs(flowering_individuals)
 
-            gamete_listing = [meiosis(individual, self.aneuploid_pairing_bias) for individual in reproducing_individuals]
+            gamete_listing = [meiosis(individual, self.aneuploid_pairing_bias) for individual in flowering_individuals]
 
             for individual in gamete_listing:
                 self.all_seeds.append(dip_list(individual))
-            current_generation = GenerationState(germinated_seeds_snapshot, reproducing_individuals_snapshot,
-                                                 stable_reproducing_individuals_count, tetrasomic_counts)
+            current_generation = GenerationState(germinated_seeds_snapshot, flowering_individuals_snapshot,
+                                                 stable_flowering_individuals_count, tetrasomic_counts)
             self.generation_history.append(current_generation)
             print(generation_i, end=' ', flush=True)  # Status indicator for user
-            self._report_on_generation(germinated_seedlings, reproducing_individuals)
+            self._report_on_generation(germinated_seedlings, flowering_individuals)
 
 
 def count_stable_indivs(list_of_karyotypes):
@@ -544,7 +544,7 @@ def determine_current_population_carrying_capacity(pop_size):
 
 def apply_selection_to_seeds(progeny_listing):
     """ Determine seed viability and apply chance seed set.
-    :arg progeny_listing contains seed karyotypes from each reproducing plant in the given generation
+    :arg progeny_listing contains seed karyotypes from each flowering plant in the given generation
     :type progeny_listing: population list of parent lists of progeny lists
     """
     viable_progeny_listing = []
@@ -656,7 +656,7 @@ def do_reports(args, generation_history):
                             else:
                                 if all(i in entry for i in ['B']):
                                     all_euploid_count +=1
-                for entry in current_generation.codes_for_reproducing_individuals:
+                for entry in current_generation.codes_for_flowering_individuals:
                     if all(i in entry for i in ['B', 'U', 'N', 'n']) or \
                             all(i in entry for i in ['B', 'N', 'n']) or \
                             all(i in entry for i in ['N', 'n']) or \
@@ -767,3 +767,4 @@ if __name__ == '__main__':
                                      args.aneuploid_pairing_bias)
     simulation.run_simulation()
     do_reports(args, simulation.generation_history)
+
