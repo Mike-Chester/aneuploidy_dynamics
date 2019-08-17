@@ -266,10 +266,11 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 numerical_aneuploid_list = tetrasomic_split_listing(chr_group)
                 possible_gametic_combinations.append(
-                    (group_homeologue_list[1:5]* disomic_count*args.non_numerical_multiplier) + #(1) homologous pairing products
-                    (group_homeologue_list[0:1]* tetrasomic_count*args.non_numerical_multiplier) + #(2) homeologous pairing products
-                    (group_homeologue_list[5:6]* tetrasomic_count*args.non_numerical_multiplier) + #(3) homeologous pairing products
-                    (list(chain.from_iterable(numerical_aneuploid_list[:]))))   #(4) numerical aneuploid (imbalanced segregation products)
+                    (group_homeologue_list[1:5] * disomic_count * args.non_numerical_multiplier) +  #homologous
+                    (group_homeologue_list[1:5] * tetrasomic_count * args.non_numerical_multiplier) +  #homologous
+                    (group_homeologue_list[0:1] * tetrasomic_count * args.non_numerical_multiplier) +  #homeologous
+                    (group_homeologue_list[5:6] * tetrasomic_count * args.non_numerical_multiplier) +  #homeologous
+                    (list(chain.from_iterable(numerical_aneuploid_list[:]))))  #(4) numerical (imbalanced segregation)
             else:  # unbalanced 1:3 or 0:4 composition
                 group_homeologue_list = generate_all_haploid_chr_combinations(chr_group)
                 # In 1:3 situations, need to boost numbers of 0:2 gametes due to non-disjunction of monosomes.
