@@ -279,10 +279,14 @@ def meiosis(parent_karyotype, aneuploid_pairing_bias):
                 for pairing in group_homeologue_list:
                     if pairing[0:1] == pairing[2:3]:
                         lis_of_nulli_disome_gametes.append(pairing)
-                resulting_aneuploid_count = disomic_count * aneuploid_pairing_bias  # homeologous pairing bias
+                resulting_aneuploid_count = disomic_count * aneuploid_pairing_bias # homeologous pairing bias
                 # increase the number of unbalanced gametes.  See paper for rationale on using an integer value of 4.
                 lis_of_nulli_disome_gametes *= resulting_aneuploid_count
-                possible_gametic_combinations.append(group_homeologue_list + lis_of_nulli_disome_gametes)
+                numerical_aneuploid_list = tetrasomic_split_listing(chr_group)
+                possible_gametic_combinations.append(
+                    group_homeologue_list +
+                    lis_of_nulli_disome_gametes +
+                    (list(chain.from_iterable(numerical_aneuploid_list[:]))))
         if total_count == 3:
             possible_gametic_combinations.append(list(chain.from_iterable(trisomic_split_listing(chr_group)[:])))
         if total_count == 5:
