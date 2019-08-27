@@ -22,7 +22,7 @@ e.g., 8=80%, 9=90% and 0=100%.
 homeologue ratios.
 
 Column names for output files = [("Generation","End_generation","Max_pop_size","SEED_VIABILITY","SURVIVAL_TO_FLOWERING"
-,"MAX_SEED_SET","CORRECT_PAIRING_PROBABILITY","NON_NUMERICAL_MULTIPLIER","Total_stable_individuals",
+,"MAX_SEED_SET","CORRECT_PAIRING_PROBABILITY","NON_NUMERICAL_MULTIPLIER","ANEUPLOID_PAIRING_BIAS","Total_stable_individuals",
 "Total_germinated_euploids","Total_germinated_3_1_aneupoids","Total_germinated_4_0_aneupoids", 
 "Total_germinated_numerical_aneuploids","Total_flowering_euploids","Total_flowering_3_1_aneupoids",
 "Total_flowering_4_0_aneupoids","Total_flowering_numerical_aneuploids","A_tet_count","a_tet_count","B_tet_count",
