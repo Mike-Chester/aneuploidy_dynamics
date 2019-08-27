@@ -694,7 +694,7 @@ def do_reports(args, generation_history):
 
                 order_derived = [n, args.generations, args.max_pop_size, args.seed_viability_cutoff,
                                  args.ranked_survival_to_flowering_cutoff, args.sibling_survival_cutoff,
-                                 args.starting_karyotype, args.non_numerical_multiplier,
+                                 args.starting_karyotype, args.non_numerical_multiplier, args.aneuploid_pairing_bias,
                                  current_generation.count_of_stable_mature_individuals, all_euploid_count,
                                  all_B_U_aneuploid_count, all_B_U_N_aneuploid_count,all_B_U_N_n_aneuploid_count,
                                  flowering_euploid_count, flowering_B_U_aneuploid_count,flowering_B_U_N_aneuploid_count,
